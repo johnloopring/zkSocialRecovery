@@ -1,0 +1,316 @@
+{
+    "version": 1,
+    "id": "zk-social-recovery",
+    "title": "ZK Social Recovery",
+    "description": "Deploy your own Wallet.",
+    "aboutUrl": "https://github.com/solui/demo",
+    "image": {
+        "url": "https://i.ibb.co/tDmSSXw/icons8-socrates-100.png"
+    },
+    "constants": {
+        "ethToken": {
+          "default":
+            {
+              "label": "ETH",
+              "address": "0x0000000000000000000000000000000000000000"
+            }   
+        }
+      },
+    "panels": [
+        {
+            "id": "create",
+            "title": "Create wallet",
+            "description": "Deploy new ZK-recovery wallet.",
+            "image": {
+                "url": "https://i.ibb.co/g79xx1y/icons8-factory-96.png"
+            },
+            "inputs": [
+                {
+                    "name": "owner",
+                    "title": "Owner",
+                    "type": "address",
+                    "initialValue": "@env[account]"
+                }
+            ],
+            "execs": [
+                {
+                    "type": "deploy",
+                    "contract": "ZkWallet",
+                    "args": {
+                        "_owner": "@input[owner]"
+                    },
+                    "saveResultAsInput": "walletAddress"
+                }
+            ],
+            "outputs": [
+                {
+                    "title": "Wallet address",
+                    "type": "address",
+                    "value": "@input[walletAddress]"
+                }
+            ]
+        },
+        {
+            "id": "view",
+            "title": "View wallet state",
+            "description": "View wallet state.",
+            "image": {
+                "url": "https://i.ibb.co/hLmm9mp/icons8-wallet-96.png"
+            },
+            "inputs": [
+                {
+                    "name": "contractAddress",
+                    "title": "Wallet contract address",
+                    "type": "address",
+                    "validation": [
+                        {
+                            "type": "allowedTypes",
+                            "contract": true
+                        }
+                    ]
+                }
+            ],
+            "execs": [
+                {
+                    "type": "call",
+                    "contract": "ZkWallet",
+                    "address": "@input[contractAddress]",
+                    "method": "owner",
+                    "saveResultAsInput": "owner"
+                },
+                {
+                    "type": "call",
+                    "contract": "ZkWallet",
+                    "address": "@input[contractAddress]",
+                    "method": "balance",
+                    "args": {
+                        "_token": "@constant[ethToken][address]"
+                      },
+                    "saveResultAsInput": "balance"
+                }
+            ],
+            "outputs": [
+                {
+                    "title": "Wallet Owner",
+                    "type": "address",
+                    "value": "@input[owner]"
+                },
+                {
+                    "title": "Wallet Balance",
+                    "type": "address",
+                    "value": "@input[balance]"
+                }
+            ]
+        },
+        {
+            "id": "view-balance",
+            "title": "ERC20 balance",
+            "description": "View your ERC20 balance.",
+            "image": {
+              "url": "https://i.ibb.co/rf14tmQ/icons8-money-bag-96.png"
+            },
+            "inputs": [
+              {
+                "name": "contractAddress",
+                "title": "Wallet contract address",
+                "type": "address",
+                "validation": [
+                  {
+                    "type": "allowedTypes",
+                    "contract": true
+                  }
+                ]
+              },
+              {
+                "name": "tokenAddress",
+                "title": "TokenAddress",
+                "type": "address",
+                "validation": [
+                  {
+                    "type": "allowedTypes",
+                    "contract": true,
+                    "eoa": true
+                  }
+                ]
+              }
+            ],
+            "execs": [
+              {
+                "type": "call",
+                "contract": "ZkWallet",
+                "address": "@input[contractAddress]",
+                "method": "balance",
+                "args": {
+                  "_token": "@input[tokenAddress]"
+                },
+                "saveResultAsInput": "balance"
+              }
+            ],
+            "outputs": [
+              {
+                "title": "Balance",
+                "type": "int",
+                "value": "@input[balance]"
+              }
+            ]
+        },
+        {
+            "id": "transfer",
+            "title": "Send",
+            "description": "Transfer tokens.",
+            "image": {
+                "url": "https://i.ibb.co/xqF4NWv/icons8-send-96.png"
+            },
+            "inputs": [
+                {
+                    "name": "contractAddress",
+                    "title": "Token contract address",
+                    "type": "address",
+                    "validation": [
+                        {
+                            "type": "allowedTypes",
+                            "contract": true
+                        }
+                    ]
+                },
+                {
+                    "name": "recipient",
+                    "title": "Recipient",
+                    "type": "address",
+                    "validation": [
+                        {
+                            "type": "allowedTypes",
+                            "eoa": true,
+                            "contract": true
+                        }
+                    ]
+                },
+                {
+                    "name": "token",
+                    "title": "Token",
+                    "type": "address",
+                    "validation": [
+                        {
+                            "type": "allowedTypes",
+                            "eoa": true,
+                            "contract": true
+                        }
+                    ]
+                },
+                {
+                    "name": "amount",
+                    "title": "Amount to send",
+                    "type": "int",
+                    "unit": "Token",
+                    "scale": "18",
+                    "validation": [
+                        {
+                            "type": "range",
+                            "min": "1",
+                            "max": "1000000000"
+                        }
+                    ]
+                }
+            ],
+            "execs": [
+                {
+                    "type": "send",
+                    "contract": "ZkWallet",
+                    "address": "@input[contractAddress]",
+                    "method": "transfer",
+                    "args": {
+                        "_to": "@input[recipient]",
+                        "_token": "@input[token]",
+                        "_amount": "@input[amount]"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "addGuardian",
+            "title": "addGuardian",
+            "description": "Add new guardian to wallet",
+            "image": {
+                "url": "https://i.ibb.co/MMzQ7yp/icons8-key-96.png"
+            },
+            "inputs": [
+                {
+                    "name": "contractAddress",
+                    "title": "wallet contract address",
+                    "type": "address",
+                    "validation": [
+                        {
+                            "type": "allowedTypes",
+                            "contract": true
+                        }
+                    ]
+                },
+                {
+                    "name": "_firstHalfOfHash",
+                    "title": "First half of guardian address hash",
+                    "type": "bytes32"
+                },
+                {
+                    "name": "_secondHalfOfHash",
+                    "title": "Second half of guardian address hash",
+                    "type": "bytes32"
+                }
+            ],
+            "execs": [
+                {
+                    "type": "send",
+                    "contract": "ZkWallet",
+                    "address": "@input[contractAddress]",
+                    "method": "addGuardian",
+                    "args": {
+                        "_firstHalfOfHash": "@input[_firstHalfOfHash]",
+                        "_secondHalfOfHash": "@input[_secondHalfOfHash]"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "zkRecover",
+            "title": "zkRecover",
+            "description": "Recover user account in zero-knowledge",
+            "image": {
+                "url": "https://i.ibb.co/J2MC23k/icons8-restore-page-96.png"
+            },
+            "inputs": [
+                {
+                    "name": "contractAddress",
+                    "title": "wallet contract address",
+                    "type": "address",
+                    "validation": [
+                        {
+                            "type": "allowedTypes",
+                            "contract": true
+                        }
+                    ]
+                },
+                {
+                    "name": "recoveryAddress",
+                    "title": "Recovery Address",
+                    "type": "address"
+                },
+                {
+                    "name": "proof",
+                    "title": "Proof",
+                    "type": "bytes32[]"
+                }
+            ],
+            "execs": [
+                {
+                    "type": "send",
+                    "contract": "ZkWallet",
+                    "address": "@input[contractAddress]",
+                    "method": "zkRecover",
+                    "args": {
+                        "_recoveryAddress": "@input[recoveryAddress]",
+                        "proof": "@input[proof]"
+                    }
+                }
+            ]
+        }
+    ]
+}
